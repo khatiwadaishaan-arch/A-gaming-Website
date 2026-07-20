@@ -79,6 +79,25 @@
   }
   @keyframes twinkle{ 0%,100%{opacity:.2;} 50%{opacity:.9;} }
 
+  /* ---------- Home / quit button ---------- */
+  #home-btn{
+    position:absolute; top:16px; left:16px; z-index:5;
+    display:flex; align-items:center; gap:6px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.25);
+    color:var(--white);
+    font-family:'Share Tech Mono', monospace;
+    font-size:11px; letter-spacing:2px;
+    padding:8px 14px; border-radius:20px;
+    text-decoration:none;
+    cursor:pointer;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+  }
+  #home-btn:hover{
+    background:rgba(255,255,255,0.18);
+    box-shadow: 0 0 12px rgba(255,255,255,0.3);
+  }
+
   /* ---------- Header ---------- */
   #header{
     position:relative; z-index:2;
@@ -230,21 +249,33 @@
   .win{ color:var(--yellow); text-shadow:0 0 18px var(--yellow), 0 0 40px var(--pink); }
   .lose{ color:#ff5566; text-shadow:0 0 18px #ff5566, 0 0 40px #7a0f2b; }
   #result-sub{ margin-top:10px; font-size:13px; letter-spacing:2px; opacity:0.8; }
-  #again-btn{
+  #result-actions{
     margin-top:30px;
+    display:flex; gap:14px; flex-wrap:wrap; justify-content:center;
+  }
+  #again-btn, #home-btn-result{
     font-family:'Orbitron', sans-serif;
     font-weight:700;
     letter-spacing:2px;
     font-size:14px;
-    color:var(--bg-deep);
-    background:var(--yellow);
     border:none;
     padding:14px 32px;
     border-radius:30px;
     cursor:pointer;
+    text-decoration:none;
+    display:inline-block;
+  }
+  #again-btn{
+    color:var(--bg-deep);
+    background:var(--yellow);
     box-shadow:0 0 20px rgba(255,210,63,0.6);
   }
-  #again-btn:active{ transform: scale(0.96); }
+  #home-btn-result{
+    color:var(--white);
+    background:transparent;
+    border:2px solid var(--white);
+  }
+  #again-btn:active, #home-btn-result:active{ transform: scale(0.96); }
 
   .flash-red{ animation: flashRed 0.4s ease-out; }
   @keyframes flashRed{
@@ -281,6 +312,7 @@
 <body>
 
 <div id="stage">
+  <a id="home-btn" href="homepage.html" title="Quit to homepage">⏻ HOME</a>
   <button id="sound-toggle">🔊 SOUND ON</button>
 
   <div id="track">
@@ -329,7 +361,10 @@
   <div class="screen hidden" id="result-screen">
     <div id="result-text">YOU WIN!</div>
     <div id="result-sub">CAR X CROSSED THE LINE FIRST</div>
-    <button id="again-btn">RACE AGAIN</button>
+    <div id="result-actions">
+      <button id="again-btn">RACE AGAIN</button>
+      <a id="home-btn-result" href="homepage.html">QUIT TO HOME</a>
+    </div>
   </div>
 </div>
 

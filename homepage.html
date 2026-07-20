@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pick and Race</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ff7eb3, #ff758c, #ff6a5c, #ff4e50);
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
+            color: white;
+            text-align: center;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            font-size: 3rem;
+            text-shadow: 0 0 10px #fff, 0 0 20px #ff6a5c, 0 0 30px #ff4e50;
+        }
+
+        p {
+            font-size: 1.5rem;
+            margin: 20px;
+            text-shadow: 0 0 5px #fff, 0 0 10px #ff758c;
+        }
+
+        .button-container {
+            margin-top: 30px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            border: 2px solid white;
+            border-radius: 30px;
+            background: transparent;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px #fff, 0 0 10px #ff758c;
+        }
+
+        .button:hover {
+            background: white;
+            color: #ff4e50;
+            box-shadow: 0 0 10px #fff, 0 0 20px #ff758c, 0 0 30px #ff4e50;
+        }
+
+        footer {
+            margin-top: 50px;
+            font-size: 0.9rem;
+            text-shadow: 0 0 5px #fff, 0 0 10px #ff758c;
+        }
+    </style>
+</head>
+

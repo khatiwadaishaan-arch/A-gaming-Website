@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PICK YOUR WINNER</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap');
+
+  :root{
+    --bg-deep: #170a2e;
+    --bg-mid: #2b0f4f;
+    --pink: #ff2fb0;
+    --cyan: #35f0e0;
+    --yellow: #ffd23f;
+    --white: #f4f2ff;
+    --x-color: #ff2fb0;
+    --y-color: #35f0e0;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html,body{
+    width:100%; height:100%; overflow:hidden;
+    background:var(--bg-deep);
+    font-family:'Share Tech Mono', monospace;
+    color:var(--white);
+  }
+
+  #stage{
+    position:relative;
+    width:100%; height:100vh;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:flex-start;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255,47,176,0.25), transparent 60%),
+      radial-gradient(ellipse at 50% 100%, rgba(53,240,224,0.18), transparent 60%),
+      linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 55%, #0c0620 100%);
+  }
+
+  /* ---------- Track background ---------- */
+  #track{
+    position:absolute; inset:0;
+    overflow:hidden;
+    z-index:0;
+  }
+  .horizon-glow{
+    position:absolute; left:50%; top:8%;
+    width:140%; height:2px;
+    transform:translateX(-50%);
+    background: linear-gradient(90deg, transparent, var(--cyan), var(--pink), transparent);
+    filter: blur(1px);
+    opacity:0.7;
+  }
+  .lane-line{
+    position:absolute; bottom:0; left:50%;
+    width:8px; height:60%;
+    background:repeating-linear-gradient(180deg, var(--yellow) 0 26px, transparent 26px 52px);
+    transform-origin:bottom center;
+    opacity:0.55;
+  }
+  .grid-floor{
+    position:absolute; left:0; right:0; bottom:0; height:55%;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 2px, transparent 2px 60px),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.06) 0 2px, transparent 2px 40px);
+    -webkit-mask-image: linear-gradient(180deg, transparent, black 40%);
+    mask-image: linear-gradient(180deg, transparent, black 40%);
+    transform: perspective(300px) rotateX(55deg);
+    transform-origin: bottom;
+  }
+  .flag-strip{
+    position:absolute; top:0; left:0; right:0; height:14px;
+    background: repeating-linear-gradient(90deg, #fff 0 20px, #1a1a1a 20px 40px);
+    opacity:0.85;
+  }
+  .stars span{
+    position:absolute; width:2px; height:2px; background:#fff; border-radius:50%;
+    opacity:0.6; animation: twinkle 2.4s ease-in-out infinite;
+  }
+  @keyframes twinkle{ 0%,100%{opacity:.2;} 50%{opacity:.9;} }
+
+  /* ---------- Header ---------- */
+  #header{
+    position:relative; z-index:2;
+    text-align:center;
+    margin-top:26px;
+  }
+  #title{
+    font-family:'Orbitron', sans-serif;
+    font-weight:900;
+    font-size:clamp(28px, 6vw, 54px);
+    letter-spacing:3px;
+    color:var(--white);
+    text-shadow:
+      0 0 6px var(--pink),
+      0 0 18px var(--pink),
+      0 0 32px var(--cyan);
+    display:inline-block;
+  }
+  #subtitle{
+    margin-top:10px;
+    font-size:clamp(11px, 2vw, 15px);
+    letter-spacing:4px;
+    color:var(--yellow);
+    opacity:0.9;
+  }
+
+  .shake{ animation: shakeText 0.12s linear infinite; }
+  @keyframes shakeText{
+    0%{ transform: translate(0,0) rotate(0deg); }
+    25%{ transform: translate(1px,-1px) rotate(-0.4deg); }
+    50%{ transform: translate(-1px,1px) rotate(0.4deg); }
+    75%{ transform: translate(1px,1px) rotate(-0.3deg); }
+    100%{ transform: translate(0,0) rotate(0deg); }
+  }
+  .pop{ animation: popBeat 0.18s ease-out; }
+  @keyframes popBeat{
+    0%{ transform: scale(1); }
+    35%{ transform: scale(1.14); }
+    100%{ transform: scale(1); }
+  }
+
+  /* ---------- Screens ---------- */
+  .screen{
+    position:relative; z-index:2;
+    width:100%; flex:1;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:28px;
+  }
+  .hidden{ display:none !important; }
+
+  /* ---------- Pick screen ---------- */
+  #pick-row{
+    display:flex; gap:min(6vw,60px); align-items:center; justify-content:center;
+    flex-wrap:wrap;
+  }
+  .car-card{
+    position:relative;
+    width:min(38vw, 260px);
+    padding:22px 16px 26px;
+    border-radius:18px;
+    background:linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
+    border:2px solid var(--card-color);
+    box-shadow: 0 0 0 rgba(0,0,0,0), inset 0 0 30px rgba(255,255,255,0.02);
+    cursor:pointer;
+    text-align:center;
+    transition: transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .car-card:hover{ transform: translateY(-6px); }
+  .car-card:active{ transform: translateY(-2px) scale(0.97); }
+  .car-card.x{ --card-color: var(--x-color); }
+  .car-card.y{ --card-color: var(--y-color); }
+  .car-card .glow-pulse{
+    box-shadow: 0 0 18px var(--card-color), 0 0 40px var(--card-color);
+  }
+  .car-label{
+    font-family:'Orbitron', sans-serif;
+    font-weight:900;
+    font-size:56px;
+    color:var(--card-color);
+    text-shadow: 0 0 14px var(--card-color);
+    line-height:1;
+  }
+  .car-emoji{ font-size:54px; margin:10px 0; display:block; filter: drop-shadow(0 0 8px var(--card-color)); }
+  .car-sub{
+    font-size:11px; letter-spacing:2px; color:var(--white); opacity:0.7;
+  }
+  .car-name{
+    margin-top:14px;
+    font-family:'Orbitron', sans-serif;
+    font-size:14px;
+    letter-spacing:2px;
+    color:var(--card-color);
+  }
+  #choose-hint{
+    font-size:12px; letter-spacing:3px; color:var(--white); opacity:0.55;
+  }
+  #odds-note{
+    font-size:10px; letter-spacing:2px; color:var(--white); opacity:0.35; max-width:340px; text-align:center;
+  }
+
+  /* ---------- Race screen ---------- */
+  #race-screen{ width:100%; }
+  #race-track{
+    position:relative;
+    width:min(92vw, 640px);
+    height:220px;
+    margin:0 auto;
+    background: linear-gradient(180deg, #241246, #180a2e);
+    border:2px solid rgba(255,255,255,0.15);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  .lane{
+    position:relative;
+    height:50%;
+    border-bottom:2px dashed rgba(255,255,255,0.15);
+  }
+  .lane:last-child{ border-bottom:none; }
+  .finish-line{
+    position:absolute; top:0; right:26px; bottom:0; width:6px;
+    background: repeating-linear-gradient(180deg, #fff 0 8px, #1a1a1a 8px 16px);
+    z-index:3;
+  }
+  .racer{
+    position:absolute; left:14px; top:50%;
+    transform:translateY(-50%);
+    font-size:40px;
+    filter: drop-shadow(0 0 10px currentColor);
+    transition: left 2.2s cubic-bezier(.2,.7,.3,1);
+  }
+  #racer-x{ color:var(--x-color); }
+  #racer-y{ color:var(--y-color); }
+  #countdown{
+    text-align:center; margin-top:18px;
+    font-family:'Orbitron', sans-serif;
+    font-size:34px; color:var(--yellow);
+    text-shadow:0 0 14px var(--yellow);
+  }
+
+  /* ---------- Result screen ---------- */
+  #result-screen{ text-align:center; }
+  #result-text{
+    font-family:'Orbitron', sans-serif;
+    font-weight:900;
+    font-size:clamp(34px, 8vw, 64px);
+  }
+  .win{ color:var(--yellow); text-shadow:0 0 18px var(--yellow), 0 0 40px var(--pink); }
+  .lose{ color:#ff5566; text-shadow:0 0 18px #ff5566, 0 0 40px #7a0f2b; }
+  #result-sub{ margin-top:10px; font-size:13px; letter-spacing:2px; opacity:0.8; }
+  #again-btn{
+    margin-top:30px;
+    font-family:'Orbitron', sans-serif;
+    font-weight:700;
+    letter-spacing:2px;
+    font-size:14px;
+    color:var(--bg-deep);
+    background:var(--yellow);
+    border:none;
+    padding:14px 32px;
+    border-radius:30px;
+    cursor:pointer;
+    box-shadow:0 0 20px rgba(255,210,63,0.6);
+  }
+  #again-btn:active{ transform: scale(0.96); }
+
+  .flash-red{ animation: flashRed 0.4s ease-out; }
+  @keyframes flashRed{
+    0%{ background-color: rgba(255,0,60,0.45); }
+    100%{ background-color: transparent; }
+  }
+
+  #sound-toggle{
+    position:absolute; top:16px; right:16px; z-index:5;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.25);
+    color:var(--white);
+    font-family:'Share Tech Mono', monospace;
+    font-size:11px; letter-spacing:2px;
+    padding:8px 12px; border-radius:20px;
+    cursor:pointer;
+  }
+
+  .confetti{
+    position:absolute; top:-10px; width:8px; height:14px;
+    opacity:0.9; z-index:4;
+    animation: fall linear forwards;
+  }
+  @keyframes fall{
+    to{ transform: translateY(110vh) rotate(540deg); opacity:0.2; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .shake{ animation:none; }
+    .car-card{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <button id="sound-toggle">🔊 SOUND ON</button>
+
+  <div id="track">
+    <div class="flag-strip"></div>
+    <div class="horizon-glow"></div>
+    <div class="grid-floor"></div>
+    <div class="stars" id="stars"></div>
+  </div>
+
+  <div id="header">
+    <div id="title" class="shake">PICK YOUR WINNER</div>
+    <div id="subtitle">ONE CAR TAKES THE CHECKERED FLAG</div>
+  </div>
+
+  <!-- PICK SCREEN -->
+  <div class="screen" id="pick-screen">
+    <div id="pick-row">
+      <div class="car-card x" data-car="X" tabindex="0">
+        <span class="car-emoji">🏎️</span>
+        <div class="car-label">X</div>
+        <div class="car-sub">LANE 1</div>
+        <div class="car-name">VIPER X</div>
+      </div>
+      <div class="car-card y" data-car="Y" tabindex="0">
+        <span class="car-emoji">🏎️</span>
+        <div class="car-label">Y</div>
+        <div class="car-sub">LANE 2</div>
+        <div class="car-name">YOTA Y</div>
+      </div>
+    </div>
+    <div id="choose-hint">TAP A CAR TO LOCK YOUR PICK</div>
+    <div id="odds-note">EACH CAR HAS AN EQUAL SHOT AT THE FLAG — NO SKILL, ALL NERVE.</div>
+  </div>
+
+  <!-- RACE SCREEN -->
+  <div class="screen hidden" id="race-screen">
+    <div id="race-track">
+      <div class="lane"><div class="racer" id="racer-x">🏎️</div></div>
+      <div class="lane"><div class="racer" id="racer-y">🏎️</div></div>
+      <div class="finish-line"></div>
+    </div>
+    <div id="countdown">3</div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div class="screen hidden" id="result-screen">
+    <div id="result-text">YOU WIN!</div>
+    <div id="result-sub">CAR X CROSSED THE LINE FIRST</div>
+    <button id="again-btn">RACE AGAIN</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= Starfield ================= */
+  var starsWrap = document.getElementById('stars');
+  for(var i=0;i<40;i++){
+    var s = document.createElement('span');
+    s.style.left = (Math.random()*100)+'%';
+    s.style.top = (Math.random()*30)+'%';
+    s.style.animationDelay = (Math.random()*2)+'s';
+    starsWrap.appendChild(s);
+  }
+
+  /* ================= Audio engine (synthesized beat) ================= */
+  var AudioCtx = window.AudioContext || window.webkitAudioContext;
+  var actx = null;
+  var soundOn = true;
+  var beatTimer = null;
+  var beatCount = 0;
+  var BPM = 128;
+  var beatInterval = 60 / BPM; // seconds per beat
+
+  function ensureAudio(){
+    if(!actx){
+      actx = new AudioCtx();
+    }
+    if(actx.state === 'suspended'){
+      actx.resume();
+    }
+  }
+
+  function blip(freq, time, dur, type, gainVal){
+    if(!soundOn || !actx) return;
+    var osc = actx.createOscillator();
+    var gain = actx.createGain();
+    osc.type = type || 'square';
+    osc.frequency.setValueAtTime(freq, time);
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(gainVal || 0.15, time + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+    osc.connect(gain);
+    gain.connect(actx.destination);
+    osc.start(time);
+    osc.stop(time + dur + 0.02);
+  }
+
+  function kick(time){
+    if(!soundOn || !actx) return;
+    var osc = actx.createOscillator();
+    var gain = actx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(140, time);
+    osc.frequency.exponentialRampToValueAtTime(45, time + 0.12);
+    gain.gain.setValueAtTime(0.5, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+    osc.connect(gain);
+    gain.connect(actx.destination);
+    osc.start(time);
+    osc.stop(time + 0.2);
+  }
+
+  var bassLine = [55, 55, 82.4, 73.4]; // A1, A1, E2, D2 roughly
+  var leadPattern = [440, 0, 554.4, 0, 659.3, 0, 554.4, 440];
+
+  function scheduleBeat(){
+    if(!actx) return;
+    var t = actx.currentTime + 0.05;
+    kick(t);
+    blip(bassLine[beatCount % bassLine.length], t, 0.22, 'sawtooth', 0.12);
+    // little arpeggio flair on off-beats for texture
+    blip(leadPattern[beatCount % leadPattern.length] || 440, t + beatInterval/2, 0.1, 'square', 0.05);
+
+    pulseOnBeat();
+    beatCount++;
+  }
+
+  function startMusic(){
+    ensureAudio();
+    if(beatTimer) return;
+    beatCount = 0;
+    scheduleBeat();
+    beatTimer = setInterval(scheduleBeat, beatInterval*1000);
+  }
+
+  function stopMusic(){
+    if(beatTimer){ clearInterval(beatTimer); beatTimer = null; }
+  }
+
+  /* Visual pulse synced to the beat loop (setInterval-driven, close enough to audio) */
+  var title = document.getElementById('title');
+  function pulseOnBeat(){
+    title.classList.remove('pop');
+    void title.offsetWidth; // reflow to restart animation
+    title.classList.add('pop');
+  }
+
+  /* ================= Sound toggle ================= */
+  var soundBtn = document.getElementById('sound-toggle');
+  soundBtn.addEventListener('click', function(){
+    soundOn = !soundOn;
+    soundBtn.textContent = soundOn ? '🔊 SOUND ON' : '🔇 SOUND OFF';
+    if(soundOn){
+      ensureAudio();
+      startMusic();
+    } else {
+      stopMusic();
+    }
+  });
+
+  /* Kick off music on first user interaction (browser autoplay policies) */
+  var musicStarted = false;
+  function initMusicOnce(){
+    if(musicStarted) return;
+    musicStarted = true;
+    ensureAudio();
+    startMusic();
+  }
+  document.body.addEventListener('click', initMusicOnce, { once:true });
+  document.body.addEventListener('touchstart', initMusicOnce, { once:true });
+
+  /* ================= Game logic ================= */
+  var pickScreen = document.getElementById('pick-screen');
+  var raceScreen = document.getElementById('race-screen');
+  var resultScreen = document.getElementById('result-screen');
+  var countdownEl = document.getElementById('countdown');
+  var racerX = document.getElementById('racer-x');
+  var racerY = document.getElementById('racer-y');
+  var resultText = document.getElementById('result-text');
+  var resultSub = document.getElementById('result-sub');
+  var againBtn = document.getElementById('again-btn');
+  var stage = document.getElementById('stage');
+
+  var cards = document.querySelectorAll('.car-card');
+  var playerPick = null;
+
+  function resetTrackPositions(){
+    racerX.style.transition = 'none';
+    racerY.style.transition = 'none';
+    racerX.style.left = '14px';
+    racerY.style.left = '14px';
+    // force reflow
+    void racerX.offsetWidth;
+    void racerY.offsetWidth;
+    racerX.style.transition = '';
+    racerY.style.transition = '';
+  }
+
+  function showScreen(el){
+    [pickScreen, raceScreen, resultScreen].forEach(function(s){ s.classList.add('hidden'); });
+    el.classList.remove('hidden');
+  }
+
+  cards.forEach(function(card){
+    card.addEventListener('click', function(){
+      playerPick = card.getAttribute('data-car');
+      initMusicOnce();
+      startRace();
+    });
+    card.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){
+        playerPick = card.getAttribute('data-car');
+        initMusicOnce();
+        startRace();
+      }
+    });
+  });
+
+  function startRace(){
+    resetTrackPositions();
+    showScreen(raceScreen);
+    var count = 3;
+    countdownEl.textContent = count;
+    countdownEl.classList.add('pop');
+    blip(660, actx ? actx.currentTime : 0, 0.15, 'square', 0.2);
+
+    var cd = setInterval(function(){
+      count--;
+      if(count > 0){
+        countdownEl.textContent = count;
+        countdownEl.classList.remove('pop');
+        void countdownEl.offsetWidth;
+        countdownEl.classList.add('pop');
+        blip(660, actx.currentTime, 0.15, 'square', 0.2);
+      } else {
+        clearInterval(cd);
+        countdownEl.textContent = 'GO!';
+        blip(880, actx.currentTime, 0.25, 'square', 0.25);
+        runRaceAnimation();
+      }
+    }, 700);
+  }
+
+  function runRaceAnimation(){
+    // trackWidth minus car width/finish margin
+    var trackEl = document.getElementById('race-track');
+    var trackWidth = trackEl.clientWidth;
+    var finishX = trackWidth - 70; // stop just before finish line
+
+    var winner = Math.random() < 0.5 ? 'X' : 'Y';
+
+    // Randomize finishing offsets so it looks like a real race:
+    // winner reaches finishX, loser reaches slightly less
+    var loserX = finishX - (30 + Math.random()*60);
+
+    requestAnimationFrame(function(){
+      if(winner === 'X'){
+        racerX.style.left = finishX + 'px';
+        racerY.style.left = loserX + 'px';
+      } else {
+        racerY.style.left = finishX + 'px';
+        racerX.style.left = loserX + 'px';
+      }
+    });
+
+    setTimeout(function(){
+      showResult(winner);
+    }, 2400);
+  }
+
+  function spawnConfetti(){
+    var colors = ['#ff2fb0', '#35f0e0', '#ffd23f', '#ffffff'];
+    for(var i=0;i<26;i++){
+      var c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = (Math.random()*100)+'%';
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      c.style.animationDuration = (1.6 + Math.random()*1.2)+'s';
+      c.style.animationDelay = (Math.random()*0.3)+'s';
+      stage.appendChild(c);
+      (function(el){
+        setTimeout(function(){ el.remove(); }, 3200);
+      })(c);
+    }
+  }
+
+  function showResult(winner){
+    var didWin = (winner === playerPick);
+    showScreen(resultScreen);
+
+    resultText.classList.remove('win','lose');
+    if(didWin){
+      resultText.textContent = 'YOU WIN!';
+      resultText.classList.add('win');
+      resultSub.textContent = 'CAR ' + winner + ' CROSSED THE LINE FIRST — NICE PICK.';
+      spawnConfetti();
+      blip(523, actx.currentTime, 0.15, 'square', 0.2);
+      blip(659, actx.currentTime + 0.15, 0.15, 'square', 0.2);
+      blip(784, actx.currentTime + 0.30, 0.25, 'square', 0.25);
+    } else {
+      resultText.textContent = 'YOU LOSE';
+      resultText.classList.add('lose');
+      resultSub.textContent = 'CAR ' + winner + ' CROSSED THE LINE FIRST. TRY AGAIN.';
+      stage.classList.add('flash-red');
+      setTimeout(function(){ stage.classList.remove('flash-red'); }, 400);
+      blip(220, actx.currentTime, 0.3, 'sawtooth', 0.2);
+      blip(180, actx.currentTime + 0.2, 0.35, 'sawtooth', 0.2);
+    }
+  }
+
+  againBtn.addEventListener('click', function(){
+    playerPick = null;
+    showScreen(pickScreen);
+  });
+
+})();
+</script>
+</body>
+</html>
